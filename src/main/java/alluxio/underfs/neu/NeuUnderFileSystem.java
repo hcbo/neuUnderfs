@@ -16,6 +16,11 @@ import alluxio.underfs.*;
 import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.underfs.options.*;
 import alluxio.util.SleepUtils;
+import alluxio.util.network.NetworkAddressUtils;
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,6 +41,8 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
   public static final String NEU_SCHEME = "neu://";
 
+  public CuratorFramework client;
+
   private UnderFileSystem mLocalUnderFileSystem;
 
   /**
@@ -45,9 +53,15 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
    */
   public NeuUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration conf) {
     super(uri, conf);
+    RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000,3);
+    client = CuratorFrameworkFactory.builder()
+            .connectString("kafka:2181")
+            .retryPolicy(retryPolicy)
+            .sessionTimeoutMs(6000)
+            .connectionTimeoutMs(3000)
+            .namespace("fileSize1")
+            .build();
 
-    mLocalUnderFileSystem =
-        new LocalUnderFileSystem(new AlluxioURI(stripPath(uri.getPath())), conf);
   }
 
   @Override
@@ -57,12 +71,12 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public void close() throws IOException {
-    mLocalUnderFileSystem.close();
+
   }
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
-    return mLocalUnderFileSystem.create(stripPath(path), options);
+    return new NeuFileOutputStream(client,stripPath(path));
   }
 
   @Override
@@ -92,13 +106,15 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public List<String> getFileLocations(String path) throws IOException {
-    return mLocalUnderFileSystem.getFileLocations(stripPath(path));
+    List<String> ret = new ArrayList<>();
+    ret.add(NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC, mUfsConf));
+    return ret;
   }
 
   @Override
   public List<String> getFileLocations(String path, FileLocationOptions options)
       throws IOException {
-    return mLocalUnderFileSystem.getFileLocations(stripPath(path), options);
+    return getFileLocations(path);
   }
 
   @Override
@@ -108,7 +124,13 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
-    return mLocalUnderFileSystem.getSpace(stripPath(path), type);
+    if(type.getValue()==0){
+      return 249849593856L;
+    }else if (type.getValue()==2){
+      return 105187893248L;
+    }else {
+      return 100000000000L;
+    }
   }
 
   @Override
@@ -123,12 +145,15 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
-    return mLocalUnderFileSystem.isFile(stripPath(path));
+    return false;
   }
 
   @Override
   public UfsStatus[] listStatus(String path) throws IOException {
-    return mLocalUnderFileSystem.listStatus(stripPath(path));
+    path = stripPath(path);
+    // 根据zk 获取子节点 getchildlen
+    //
+    return  null;
   }
 
   @Override
@@ -138,6 +163,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
+    path = stripPath(path);
     return mLocalUnderFileSystem.open(stripPath(path), options);
   }
 
@@ -186,8 +212,8 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
    * @return the path, with the optional scheme stripped away
    */
   private String stripPath(String path) {
-    LOG.debug("Sleeping for configured interval");
-    SleepUtils.sleepMs(mUfsConf.getMs(NeuUnderFileSystemPropertyKey.NEU_UFS_SLEEP));
+//    LOG.debug("Sleeping for configured interval");
+//    SleepUtils.sleepMs(mUfsConf.getMs(NeuUnderFileSystemPropertyKey.NEU_UFS_SLEEP));
 
     if (path.startsWith(NEU_SCHEME)) {
       path = path.substring(NEU_SCHEME.length());
