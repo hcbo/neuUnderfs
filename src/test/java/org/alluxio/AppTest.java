@@ -1,23 +1,12 @@
 package org.alluxio;
 
-import static org.junit.Assert.assertTrue;
+
 
 import alluxio.AlluxioURI;
-import alluxio.underfs.neu.NeuUnderFileSystemPropertyKey;
-import alluxio.underfs.neu.PathInfo;
-import alluxio.util.SleepUtils;
-import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
+
 import org.junit.Test;
 
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -159,8 +148,22 @@ public class AppTest
     }
     @Test
     public void test104(){
-        PathInfo pathInfo = new PathInfo();
-        System.out.println(pathInfo);
-        System.out.println(System.currentTimeMillis());
+        String realPath = "checkpoint_streaming1/state/1224/123452";
+        String underPath = "/Users/hcb/Documents/testFile/dummy3/checkpoint_streaming1/state/0";
+        boolean flag = realPath.matches(".*(/state/(\\d){1,5})/(\\d){1,5}$");
+        String topicName = underPath.replace("/","_").substring(1,underPath.length());
+        System.out.println(flag);
+        System.out.println(topicName);
+        int partitionNo = Integer.parseInt(realPath.substring(realPath.lastIndexOf("/")+1,realPath.length()));
+        System.out.println(partitionNo);
     }
+    @Test
+    public void test105(){
+        String underPath = "/Users/hcb/Documents/testFile/dummy3/checkpoint_streaming1/state/0/0";
+        String topicDir = underPath.substring(0,underPath.lastIndexOf("/"));
+        String topicName = topicDir.replace("/","_").substring(1,topicDir.length());
+        System.out.println(topicName);
+    }
+
+
 }

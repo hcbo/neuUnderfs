@@ -19,7 +19,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * neu under file system property keys.
  */
 @ThreadSafe
-public class NeuUnderFileSystemPropertyKey {
+public class DummyUnderFileSystemPropertyKey {
   public static final PropertyKey NEU_UFS_SLEEP =
       new PropertyKey.Builder(Name.NEU_UFS_SLEEP)
           .setDescription("Sleep time before performing operation on local ufs.")

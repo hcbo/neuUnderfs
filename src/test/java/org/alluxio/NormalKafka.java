@@ -153,7 +153,7 @@ public class NormalKafka {
         topicPartitionList.add(topicPartition);
         consumer.assign(topicPartitionList);
 
-        consumer.seek(topicPartition,4);
+        consumer.seek(topicPartition,5);
 
 
         ConsumerRecords<String, byte[]> records;
@@ -165,5 +165,10 @@ public class NormalKafka {
             }
         }
 
+    }
+
+    @Test
+    public void test1999(){
+        System.out.println(System.currentTimeMillis()-864000000);
     }
 }
