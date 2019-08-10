@@ -23,7 +23,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Factory for creating {@link NeuUnderFileSystem}.
  */
 @ThreadSafe
-public class NeuUnderFileSystemFactory implements UnderFileSystemFactory {
+public class DummyUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {

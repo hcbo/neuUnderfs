@@ -30,6 +30,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -59,8 +62,11 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
    * @param conf UFS configuration
    */
   public NeuUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration conf) {
-    super(uri, conf);
-    // 本地mount的路径,例如/Users/hcb/Documents/testFile/dummy3
+
+      super(uri, conf);
+
+
+    // 本地mount的路径,例如/Users/hcb/Documents/testFile/String3
     this.rootPath = uri.getPath();
 
     RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000,3);
@@ -81,6 +87,14 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
     adminClient = AdminClient.create(properties);
 
     producer = new KafkaProducer<String, byte[]>(properties);
+
+      String info = "NeuUnderFileSystem() called . AlluxioURI = " + uri.toString()  +"uri.path(): "+ uri.getPath() + " UnderFileSystemConfiguration = " + conf.toString()+ "\n";
+      try {
+          Files.write(Paths.get("/Users/hcb/Documents/neulog.txt"),
+                  info.getBytes(), StandardOpenOption.APPEND);
+      } catch (IOException e) {
+          e.printStackTrace();
+      }
 
   }
 
@@ -197,7 +211,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
     if(isFile(underPath)){
         byte[] output = new byte[0];
         try {
-            output = client.getData().forPath("/Users/hcb/Documents/testFile/dummy3/checkpoint_streaming1/state/0/0/16.snapshot");
+            output = client.getData().forPath(underPath);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -486,7 +500,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
    */
   private String stripPath(String path) {
 //    LOG.debug("Sleeping for configured interval");
-//    SleepUtils.sleepMs(mUfsConf.getMs(NeuUnderFileSystemPropertyKey.NEU_UFS_SLEEP));
+//    SleepUtils.sleepMs(mUfsConf.getMs(DummyUnderFileSystemPropertyKey.NEU_UFS_SLEEP));
 
     if (path.startsWith(NEU_SCHEME)) {
       path = path.substring(NEU_SCHEME.length());

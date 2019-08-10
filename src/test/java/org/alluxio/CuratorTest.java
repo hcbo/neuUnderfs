@@ -4,6 +4,7 @@ import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.neu.*;
 import org.apache.commons.lang3.SerializationUtils;
@@ -38,14 +39,14 @@ public class CuratorTest {
     public void pathInfoTest(){
         client.start();
         System.out.println("connected");
-        FileInfo fileInfo = new FileInfo("contentHashValue",837434L,39323L,9876L);
-        PathInfo pathInfo = new PathInfo(true,"java/jars","hcb","staff",(short)420,false,fileInfo);
+        FileInfo fileInfo = new FileInfo();
+        PathInfo pathInfo = new PathInfo(true,"hcb/java","hcb","staff",(short)420,false,fileInfo);
 
         byte[] input = SerializationUtils.serialize(pathInfo);
         try {
             client.create()
                     .creatingParentContainersIfNeeded()
-                    .forPath("/recursive/forth", input);
+                    .forPath("/hcb/java", input);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -152,7 +153,35 @@ public class CuratorTest {
 
     }
 
+    @Test
+    public void getDirectoryStatusTest(){
+        String path = "neu:///hcb/java";
+        NeuUnderFileSystem neuUnderFileSystem =
+                new NeuUnderFileSystem(new AlluxioURI("/Users/hcb/Documents/testFile/dummy3"),
+                        UnderFileSystemConfiguration.defaults(new InstancedConfiguration(new AlluxioProperties())));
+        try {
+            UfsDirectoryStatus ufsDirectoryStatus = neuUnderFileSystem.getDirectoryStatus(path);
+            System.out.println(ufsDirectoryStatus == null);
+            System.out.println(ufsDirectoryStatus.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    @Test
+    public void isDirectoryTest(){
+        String path = "neu:///hcb/java";
+        NeuUnderFileSystem neuUnderFileSystem =
+                new NeuUnderFileSystem(new AlluxioURI("/Users/hcb/Documents/testFile/dummy3"),
+                        UnderFileSystemConfiguration.defaults(new InstancedConfiguration(new AlluxioProperties())));
+        boolean flag = false;
+        try {
+            flag = neuUnderFileSystem.isDirectory(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println(flag);
+    }
 
 
 

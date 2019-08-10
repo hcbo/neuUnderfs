@@ -1,23 +1,12 @@
 package org.alluxio;
 
-import static org.junit.Assert.assertTrue;
+
 
 import alluxio.AlluxioURI;
-import alluxio.underfs.neu.NeuUnderFileSystemPropertyKey;
-import alluxio.underfs.neu.PathInfo;
-import alluxio.util.SleepUtils;
-import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
+
 import org.junit.Test;
 
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
