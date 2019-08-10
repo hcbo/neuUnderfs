@@ -59,6 +59,7 @@ public class NeuFileOutputStream extends OutputStream {
                     .connectionTimeoutMs(3000)
                     .namespace("fileSize1")
                     .build();
+            this.client.start();
         }
 
         producer = new KafkaProducer<String, byte[]>(properties);
@@ -93,7 +94,6 @@ public class NeuFileOutputStream extends OutputStream {
 
 
         // 写元信息
-        this.client.start();
         pathInfo.fileInfo.offset = recordMetadata.offset();
         pathInfo.fileInfo.contentLength = pointer;
         pathInfo.fileInfo.lastModified = System.currentTimeMillis();
@@ -109,7 +109,7 @@ public class NeuFileOutputStream extends OutputStream {
 
     }
 
-    // kafka的主题名不能带/
+
 
     /**
      * filePath的几种形式
@@ -117,9 +117,9 @@ public class NeuFileOutputStream extends OutputStream {
      *  /dummy/checkpoint_streaming1/metadata
      *  /dummy/checkpoint_streaming1/offsets/18
      *  /dummy/checkpoint_streaming1/sources/0/0
-     *  /dummy/checkpoint_streaming1/state/0/10/.5.delta.5a88bcdc-c3b4-4ac4-b89e-089fd0648bf7.TID11.tmp
-     *  /dummy/checkpoint_streaming1/state/0/10/17.delta
-     *  /dummy/checkpoint_streaming1/state/0/10/16.snapshot
+     *  /dummy/checkpoint_streaming1/state/0/0/.5.delta.5a88bcdc-c3b4-4ac4-b89e-089fd0648bf7.TID11.tmp
+     *  /dummy/checkpoint_streaming1/state/0/0/17.delta
+     *  /dummy/checkpoint_streaming1/state/0/0/16.snapshot
      *
      * @param filePath
      * @return
@@ -144,7 +144,7 @@ public class NeuFileOutputStream extends OutputStream {
         }
         return tps;
     }
-
+    // kafka的主题名不能带/
     private String toTopicName(String[] subPaths,int end){
         String topicName = "";
         for (int i = 1; i < end; i++) {
