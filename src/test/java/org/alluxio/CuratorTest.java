@@ -40,13 +40,29 @@ public class CuratorTest {
         client.start();
         System.out.println("connected");
         FileInfo fileInfo = new FileInfo();
-        PathInfo pathInfo = new PathInfo(true,"hcb/java","hcb","staff",(short)420,false,fileInfo);
+        PathInfo pathInfo = new PathInfo(true,"/hcb","hcb","staff",(short)420,false,fileInfo);
 
         byte[] input = SerializationUtils.serialize(pathInfo);
         try {
             client.create()
                     .creatingParentContainersIfNeeded()
-                    .forPath("/hcb/java", input);
+                    .forPath("/hcb", input);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void curatorSetDataTest(){
+        client.start();
+        FileInfo fileInfo = new FileInfo();
+        PathInfo pathInfo = new PathInfo(true,"/hcb","hcb","staff",(short)420,false,fileInfo);
+
+        byte[] input = SerializationUtils.serialize(pathInfo);
+        try {
+            client.setData()
+                    .withVersion(-1)  //版本校验，与当前版本不一致则更新失败,-1则无视版本信息进行更新
+                    .forPath("/hcb", input);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -55,9 +71,9 @@ public class CuratorTest {
 
     @Test
     public void existsTest() {
-        String path = "neu:///Users/hcb/Documents/testFile/dummy3/checkpoint_streaming1/metadata10";
+        String path = "/hcb";
         NeuUnderFileSystem neuUnderFileSystem =
-                new NeuUnderFileSystem(new AlluxioURI("/dummy/hcb"), UnderFileSystemConfiguration.defaults(new InstancedConfiguration(new AlluxioProperties())));
+                new NeuUnderFileSystem(new AlluxioURI("/hcb/java"), UnderFileSystemConfiguration.defaults(new InstancedConfiguration(new AlluxioProperties())));
 
         try {
             System.out.println(neuUnderFileSystem.exists(path));
@@ -118,7 +134,7 @@ public class CuratorTest {
         client.start();
         byte[] output = new byte[0];
         try {
-            output = client.getData().forPath("/Users/hcb/Documents/testFile/dummy3/checkpoint_streaming1/state/0/0/16.snapshot");
+            output = client.getData().forPath("/hcb");
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -13,7 +13,6 @@ package alluxio.underfs.neu;
 
 import alluxio.AlluxioURI;
 import alluxio.underfs.*;
-import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.underfs.options.*;
 import alluxio.util.network.NetworkAddressUtils;
 import org.apache.commons.lang3.SerializationUtils;
@@ -24,15 +23,14 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.kafka.clients.admin.*;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.common.KafkaFuture;
+import org.apache.log4j.PropertyConfigurator;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -54,7 +52,6 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
   String rootPath ;
 
 
-
   /**
    * Constructs a new {@link NeuUnderFileSystem}.
    *
@@ -63,44 +60,48 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
    */
   public NeuUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration conf) {
 
+
       super(uri, conf);
-
-
+      PropertyConfigurator.configure(getLog4jProps());
+      LOG.error("NeuUnderFileSystem 构造方法开始");
     // 本地mount的路径,例如/Users/hcb/Documents/testFile/String3
-    this.rootPath = uri.getPath();
+      this.rootPath = uri.getPath();
 
-    RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000,3);
-    client = CuratorFrameworkFactory.builder()
-            .connectString("kafka:2181")
+      RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000,3);
+      client = CuratorFrameworkFactory.builder()
+            .connectString(mUfsConf.get(NeuUnderFileSystemPropertyKey.ZK_SERVERS))
             .retryPolicy(retryPolicy)
             .sessionTimeoutMs(6000)
             .connectionTimeoutMs(3000)
             .namespace("fileSize1")
             .build();
-    client.start();
-    Properties properties = new Properties();
-    try {
-      properties.load(new FileReader(new File("src/main/resources/kafka.properties")));
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    adminClient = AdminClient.create(properties);
+      client.start();
+      Properties properties = new Properties();
+      properties.put("bootstrap.servers",mUfsConf.get(NeuUnderFileSystemPropertyKey.KAFKA_SERVERS));
+      properties.put("key.serializer","org.apache.kafka.common.serialization.StringSerializer");
+      properties.put("value.serializer","org.apache.kafka.common.serialization.ByteArraySerializer");
+      properties.put("key.deserializer","org.apache.kafka.common.serialization.StringDeserializer");
+      properties.put("value.deserializer","org.apache.kafka.common.serialization.ByteArrayDeserializer");
+      properties.put("enable.auto.commit",true);
+      // todo group id 变化起来?
+      properties.put("group.id","test9");
+      properties.put("auto.offset.reset","earliest");
+      properties.put("acks", "-1");
+      properties.put("retries", 3);
+      properties.put("buffer.memory", 33554432);
 
-    producer = new KafkaProducer<String, byte[]>(properties);
 
-      String info = "NeuUnderFileSystem() called . AlluxioURI = " + uri.toString()  +"uri.path(): "+ uri.getPath() + " UnderFileSystemConfiguration = " + conf.toString()+ "\n";
-      try {
-          Files.write(Paths.get("/Users/hcb/Documents/neulog.txt"),
-                  info.getBytes(), StandardOpenOption.APPEND);
-      } catch (IOException e) {
-          e.printStackTrace();
-      }
+      adminClient = AdminClient.create(properties);
 
+      producer = new KafkaProducer<String, byte[]>(properties);
+
+      LOG.error("NeuUnderFileSystem 构造方法执行完毕");
   }
 
   @Override
   public String getUnderFSType() {
-    return "neu";
+      LOG.error("getUnderFSType() 执行");
+      return "neu";
   }
 
   @Override
@@ -110,16 +111,19 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
+      LOG.error("create()方法执行 path="+path);
     return new NeuFileOutputStream(client,stripPath(path));
   }
 
   @Override
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
+      LOG.error("deleteDirectory()方法执行 path="+path);
     return true;
   }
 
   @Override
   public boolean deleteFile(String path) throws IOException {
+      LOG.error("deleteFile()方法执行 path="+path);
       String underPath = stripPath(path);
       if(isFile(underPath)){
           try {
@@ -137,6 +141,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public boolean exists(String path) throws IOException {
+      LOG.error("exists()方法执行 path="+path);
     String underPath = stripPath(path);
     // .5.delta.5a88bcdc-c3b4-4ac4-b89e-089fd0648bf7.TID11.tmp
     if(underPath.endsWith(".tmp") && !underPath.contains("TID")){
@@ -157,6 +162,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public long getBlockSizeByte(String path) throws IOException {
+      LOG.error("getBlockSizeByte()方法执行 path="+path);
     String underPath = stripPath(path);
     if(exists(underPath)){
         byte[] output = new byte[0];
@@ -176,6 +182,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public UfsDirectoryStatus getDirectoryStatus(String path) throws IOException {
+      LOG.error("getDirectoryStatus()方法执行 path="+path);
       String underPath = stripPath(path);
       if(exists(underPath)){
           byte[] output = new byte[0];
@@ -194,6 +201,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public List<String> getFileLocations(String path) throws IOException {
+      LOG.error("getFileLocations()方法执行 path="+path);
     List<String> ret = new ArrayList<>();
     ret.add(NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC, mUfsConf));
     return ret;
@@ -207,6 +215,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public UfsFileStatus getFileStatus(String path) throws IOException {
+      LOG.error("getFileStatus()方法执行 path="+path);
     String underPath = stripPath(path);
     if(isFile(underPath)){
         byte[] output = new byte[0];
@@ -226,6 +235,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
+      LOG.error("getSpace()方法执行 path="+path);
     if(type.getValue()==0){
       return 249849593856L;
     }else if (type.getValue()==2){
@@ -237,7 +247,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public UfsStatus getStatus(String path) throws IOException {
-
+      LOG.error("getStatus()方法执行 path="+path);
       String underPath = stripPath(path);
       if(exists(underPath)){
           byte[] output = new byte[0];
@@ -265,9 +275,10 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public boolean isDirectory(String path) throws IOException {
+      LOG.error("isDirectory()方法执行 path="+path);
     String underPath = stripPath(path);
-    if(exists(underPath)){
-      return !isFile(underPath);
+    if(exists(path)){
+      return !isFile(path);
     }else {
       return false;
     }
@@ -275,6 +286,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
+      LOG.error("isFile()方法执行 path="+path);
     String underPath = stripPath(path);
     if(underPath.contains(".alluxio_ufs_blocks")){
       return false;
@@ -295,6 +307,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public UfsStatus[] listStatus(String path) throws IOException {
+      LOG.error("listStatus()方法执行 path="+path);
     String underPath = stripPath(path);
     // 根据zk 获取子节点 getchildlen
     List<String> children = null;
@@ -348,6 +361,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
    */
   @Override
   public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
+      LOG.error("mkdirs()方法执行 path="+path);
     // 传入的一定是目录的路径
     String underPath = stripPath(path);
     if(exists(underPath)){
@@ -453,16 +467,19 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
+      LOG.error("open()方法执行 path="+path);
     return new NeuFileInputStream(client,stripPath(path));
   }
 
   @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
+      LOG.error("renameDirectory()方法执行 src="+src+" dst"+dst);
     return true;
   }
 
   @Override
   public boolean renameFile(String src, String dst) throws IOException {
+      LOG.error("renameFile()方法执行 src="+src+" dst"+dst);
     return true;
   }
 
@@ -500,11 +517,23 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
    */
   private String stripPath(String path) {
 //    LOG.debug("Sleeping for configured interval");
-//    SleepUtils.sleepMs(mUfsConf.getMs(DummyUnderFileSystemPropertyKey.NEU_UFS_SLEEP));
+//    SleepUtils.sleepMs(mUfsConf.getMs(NeuUnderFileSystemPropertyKey.NEU_UFS_SLEEP));
 
     if (path.startsWith(NEU_SCHEME)) {
       path = path.substring(NEU_SCHEME.length());
     }
     return new AlluxioURI(path).getPath();
   }
+
+  private Properties getLog4jProps(){
+      Properties props = new Properties();
+      props.put("log4j.appender.FileAppender","org.apache.log4j.RollingFileAppender");
+      props.put("log4j.appender.FileAppender.File","/Users/hcb/Documents/logs2/log4j/neu.log");
+      props.put("log4j.appender.FileAppender.layout","org.apache.log4j.PatternLayout");
+      props.put("log4j.appender.FileAppender.layout.ConversionPattern","%-4r [%t] %-5p %c %x - %m%n");
+      props.put("log4j.rootLogger","ERROR, FileAppender");
+      return props;
+  }
+
+
 }

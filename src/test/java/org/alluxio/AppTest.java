@@ -4,7 +4,11 @@ package org.alluxio;
 
 import alluxio.AlluxioURI;
 
+import alluxio.underfs.neu.NeuUnderFileSystemFactory;
+import org.apache.log4j.BasicConfigurator;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import java.io.*;
@@ -20,7 +24,9 @@ public class AppTest
 {
     /**
      * Rigorous Test :-)
+     *
      */
+
     @Test
     public void app(){
         String path = "/Users/hcb/IdeaProjects/sparkDemo/checkpoint5/offsets/thanks123456";
@@ -164,6 +170,7 @@ public class AppTest
         String topicName = topicDir.replace("/","_").substring(1,topicDir.length());
         System.out.println(topicName);
     }
+
 
 
 }
