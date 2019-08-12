@@ -5,6 +5,8 @@ package alluxio.underfs.neu;
 import java.io.Serializable;
 
 public class FileInfo implements Serializable {
+    private static final long serialVersionUID = -5809782572019943999L;
+
     public String contentHash;
     public long contentLength;
     public long lastModified;

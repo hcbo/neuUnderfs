@@ -76,6 +76,20 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
             .namespace("fileSize1")
             .build();
       client.start();
+
+      //写入rootPath 元信息到zookeeper
+      FileInfo fileInfo = new FileInfo();
+      PathInfo pathInfo = new PathInfo(true,rootPath,"hcb","staff",(short)420,false,fileInfo);
+
+      byte[] input = SerializationUtils.serialize(pathInfo);
+      try {
+          client.create()
+                  .creatingParentContainersIfNeeded()
+                  .forPath(rootPath, input);
+      } catch (Exception e) {
+          e.printStackTrace();
+      }
+      //kafka的property
       Properties properties = new Properties();
       properties.put("bootstrap.servers",mUfsConf.get(NeuUnderFileSystemPropertyKey.KAFKA_SERVERS));
       properties.put("key.serializer","org.apache.kafka.common.serialization.StringSerializer");
@@ -147,17 +161,14 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
     if(underPath.endsWith(".tmp") && !underPath.contains("TID")){
       return false;
     }else {
-      Stat stat = null;
-      try {
-        stat = client.checkExists().forPath(underPath);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      if(stat == null){
-        return false;
-      }
-      else return true;
+        try {
+            return null != client.checkExists().forPath(underPath);
+        } catch (Exception e) {
+            LOG.error(e.getMessage());
+            e.printStackTrace();
+        }
     }
+    return false;
   }
 
   @Override
@@ -292,11 +303,13 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
       return false;
     }else if (exists(path)){
       // 读元信息
+      LOG.error("断点");
       byte[] output = new byte[0];
       try {
         output = client.getData().forPath(underPath);
       } catch (Exception e) {
         e.printStackTrace();
+        LOG.error(e.getMessage());
       }
       PathInfo pathInfo = (PathInfo) SerializationUtils.deserialize(output);
       return !pathInfo.isDirectory;

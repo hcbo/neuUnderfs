@@ -3,6 +3,8 @@ package alluxio.underfs.neu;
 import java.io.Serializable;
 
 public class PathInfo implements Serializable {
+    private static final long serialVersionUID = -5809782578272943999L;
+
     public boolean isDirectory;
     public String name;
     public String owner = "hcb";

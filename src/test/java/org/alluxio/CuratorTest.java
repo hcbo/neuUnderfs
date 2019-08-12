@@ -12,7 +12,9 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.zookeeper.data.Stat;
 import org.junit.Test;
+import org.omg.CosNaming.NamingContextExtPackage.StringNameHelper;
 
 import java.io.IOException;
 import java.util.List;
@@ -134,7 +136,7 @@ public class CuratorTest {
         client.start();
         byte[] output = new byte[0];
         try {
-            output = client.getData().forPath("/hcb");
+            output = client.getData().forPath("/china");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -197,6 +199,18 @@ public class CuratorTest {
             e.printStackTrace();
         }
         System.out.println(flag);
+    }
+
+    @Test
+    public void curatorExistsTest(){
+        String underPath = "/china";
+        client.start();
+        try {
+            Stat stat = client.checkExists().forPath(underPath);
+            System.out.println(stat.getCtime());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
