@@ -312,6 +312,9 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
         LOG.error(e.getMessage());
       }
       PathInfo pathInfo = (PathInfo) SerializationUtils.deserialize(output);
+        LOG.error("断点2");
+        LOG.error(pathInfo.toString());
+
       return !pathInfo.isDirectory;
     }else {
       return false;

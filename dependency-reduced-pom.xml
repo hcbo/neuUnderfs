@@ -100,18 +100,6 @@
           <groupId>io.swagger</groupId>
         </exclusion>
         <exclusion>
-          <artifactId>curator-client</artifactId>
-          <groupId>org.apache.curator</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>curator-framework</artifactId>
-          <groupId>org.apache.curator</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>curator-recipes</artifactId>
-          <groupId>org.apache.curator</groupId>
-        </exclusion>
-        <exclusion>
           <artifactId>reflections</artifactId>
           <groupId>org.reflections</groupId>
         </exclusion>
@@ -163,18 +151,6 @@
         <exclusion>
           <artifactId>swagger-annotations</artifactId>
           <groupId>io.swagger</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>curator-client</artifactId>
-          <groupId>org.apache.curator</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>curator-framework</artifactId>
-          <groupId>org.apache.curator</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>curator-recipes</artifactId>
-          <groupId>org.apache.curator</groupId>
         </exclusion>
         <exclusion>
           <artifactId>reflections</artifactId>
