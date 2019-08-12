@@ -9,7 +9,7 @@ public class PathInfo implements Serializable {
     public String name;
     public String owner = "hcb";
     public String group = "staff";
-    public short mode = (short)420;
+    public short mode = (short)493;
     public boolean isDeleted = false;
     public long lastModified;
     public FileInfo fileInfo = new FileInfo();
