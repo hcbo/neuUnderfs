@@ -42,7 +42,7 @@ public class CuratorTest {
         client.start();
         System.out.println("connected");
         FileInfo fileInfo = new FileInfo();
-        PathInfo pathInfo = new PathInfo(true,"/hcb","hcb","staff",(short)420,false,fileInfo);
+        PathInfo pathInfo = new PathInfo(true,"/hcb",System.currentTimeMillis());
 
         byte[] input = SerializationUtils.serialize(pathInfo);
         try {
@@ -58,7 +58,7 @@ public class CuratorTest {
     public void curatorSetDataTest(){
         client.start();
         FileInfo fileInfo = new FileInfo();
-        PathInfo pathInfo = new PathInfo(true,"/hcb","hcb","staff",(short)420,false,fileInfo);
+        PathInfo pathInfo = new PathInfo(true,"/hcb",System.currentTimeMillis());
 
         byte[] input = SerializationUtils.serialize(pathInfo);
         try {

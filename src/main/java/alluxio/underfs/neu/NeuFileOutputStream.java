@@ -96,8 +96,8 @@ public class NeuFileOutputStream extends OutputStream {
         // 写元信息
         pathInfo.fileInfo.offset = recordMetadata.offset();
         pathInfo.fileInfo.contentLength = pointer;
-        pathInfo.fileInfo.lastModified = System.currentTimeMillis();
-        pathInfo.fileInfo.contentHash = UnderFileSystemUtils.approximateContentHash(pathInfo.fileInfo.contentLength, pathInfo.fileInfo.lastModified);
+        pathInfo.lastModified = System.currentTimeMillis();
+        pathInfo.fileInfo.contentHash = UnderFileSystemUtils.approximateContentHash(pathInfo.fileInfo.contentLength, pathInfo.lastModified);
         byte[] input = SerializationUtils.serialize(pathInfo);
         try {
             client.create()

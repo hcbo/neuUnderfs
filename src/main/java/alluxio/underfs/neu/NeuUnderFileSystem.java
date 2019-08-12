@@ -24,7 +24,6 @@ import org.apache.kafka.clients.admin.*;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.common.KafkaFuture;
 import org.apache.log4j.PropertyConfigurator;
-import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,7 +78,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
       //写入rootPath 元信息到zookeeper
       FileInfo fileInfo = new FileInfo();
-      PathInfo pathInfo = new PathInfo(true,rootPath,"hcb","staff",(short)420,false,fileInfo);
+      PathInfo pathInfo = new PathInfo(true,rootPath,System.currentTimeMillis());
 
       byte[] input = SerializationUtils.serialize(pathInfo);
       try {
@@ -204,7 +203,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
           }
           PathInfo pathInfo = (PathInfo) SerializationUtils.deserialize(output);
           return new UfsDirectoryStatus(pathInfo.name,pathInfo.owner,
-                  pathInfo.group,pathInfo.mode,1564562881806L);
+                  pathInfo.group,pathInfo.mode,pathInfo.lastModified);
       }else {
           return null;
       }
@@ -237,7 +236,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
         }
         PathInfo pathInfo = (PathInfo) SerializationUtils.deserialize(output);
         return new UfsFileStatus(pathInfo.name,pathInfo.fileInfo.contentHash,
-                pathInfo.fileInfo.contentLength,pathInfo.fileInfo.lastModified,
+                pathInfo.fileInfo.contentLength,pathInfo.lastModified,
                 pathInfo.owner,pathInfo.group,pathInfo.mode);
     }else {
         return null;
@@ -271,11 +270,11 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
           if(isFile(underPath)){
               return new UfsFileStatus(pathInfo.name,pathInfo.fileInfo.contentHash,
-                      pathInfo.fileInfo.contentLength,pathInfo.fileInfo.lastModified,
+                      pathInfo.fileInfo.contentLength,pathInfo.lastModified,
                       pathInfo.owner,pathInfo.group,pathInfo.mode);
           }else {
               return new UfsDirectoryStatus(pathInfo.name,pathInfo.owner,
-                      pathInfo.group,pathInfo.mode,1564562881806L);
+                      pathInfo.group,pathInfo.mode,pathInfo.lastModified);
           }
       }else {
           return null;
@@ -349,12 +348,11 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
 
         if(isFile(childPath)){
           retStatus = new UfsFileStatus(pathInfo.name,pathInfo.fileInfo.contentHash,
-                  pathInfo.fileInfo.contentLength,pathInfo.fileInfo.lastModified,
+                  pathInfo.fileInfo.contentLength,pathInfo.lastModified,
                   pathInfo.owner,pathInfo.group,pathInfo.mode);
         }else {
-          //todo 增加pathInfo的modifiedTime
           retStatus = new UfsDirectoryStatus(pathInfo.name,pathInfo.owner,pathInfo.group,
-                  pathInfo.mode,1564562881806L);
+                  pathInfo.mode,pathInfo.lastModified);
         }
         rtn[i++] = retStatus;
       }

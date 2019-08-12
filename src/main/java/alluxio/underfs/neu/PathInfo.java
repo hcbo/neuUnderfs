@@ -11,19 +11,26 @@ public class PathInfo implements Serializable {
     public String group = "staff";
     public short mode = (short)420;
     public boolean isDeleted = false;
+    public long lastModified;
     public FileInfo fileInfo = new FileInfo();
 
-    public PathInfo(boolean isDirectory, String name, String owner, String group, short mode, boolean isDeleted, FileInfo fileInfo) {
+    public PathInfo(boolean isDirectory, String name, String owner,
+                    String group, short mode, boolean isDeleted,
+                    long lastModified, FileInfo fileInfo) {
         this.isDirectory = isDirectory;
         this.name = name;
         this.owner = owner;
         this.group = group;
         this.mode = mode;
         this.isDeleted = isDeleted;
+        this.lastModified = lastModified;
         this.fileInfo = fileInfo;
     }
-    public PathInfo(){
-        super();
+
+    public PathInfo(boolean isDirectory, String name, long lastModified) {
+        this.isDirectory = isDirectory;
+        this.name = name ;
+        this.lastModified = lastModified;
     }
 
     @Override
@@ -35,7 +42,14 @@ public class PathInfo implements Serializable {
                 ", group='" + group + '\'' +
                 ", mode=" + mode +
                 ", isDeleted=" + isDeleted +
+                ", lastModified=" + lastModified +
                 ", fileInfo=" + fileInfo +
                 '}';
     }
+
+    public PathInfo(){
+        super();
+    }
+
+
 }
