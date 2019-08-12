@@ -38,7 +38,7 @@ import java.util.concurrent.ExecutionException;
  */
 @ThreadSafe
 public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(NeuUnderFileSystem.class);
+  public static final Logger LOG = LoggerFactory.getLogger(NeuUnderFileSystem.class);
 
   public static final String NEU_SCHEME = "neu://";
 
@@ -49,6 +49,8 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
   KafkaProducer<String, byte[]> producer ;
 
   String rootPath ;
+
+  Properties properties = new Properties();
 
 
   /**
@@ -89,7 +91,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
           e.printStackTrace();
       }
       //kafka的property
-      Properties properties = new Properties();
+
       properties.put("bootstrap.servers",mUfsConf.get(NeuUnderFileSystemPropertyKey.KAFKA_SERVERS));
       properties.put("key.serializer","org.apache.kafka.common.serialization.StringSerializer");
       properties.put("value.serializer","org.apache.kafka.common.serialization.ByteArraySerializer");
@@ -125,7 +127,15 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
       LOG.error("create()方法执行 path="+path);
-    return new NeuFileOutputStream(client,stripPath(path));
+      KafkaProducer<String, byte[]> produc = null;
+      try{
+          Thread.currentThread().setContextClassLoader(null);
+          produc = new KafkaProducer<String, byte[]>(properties);
+      }catch (Exception e){
+          LOG.error("异常"+e.toString());
+      }
+
+    return new NeuFileOutputStream(client,stripPath(path),produc);
   }
 
   @Override
@@ -302,7 +312,6 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
       return false;
     }else if (exists(path)){
       // 读元信息
-      LOG.error("断点");
       byte[] output = new byte[0];
       try {
         output = client.getData().forPath(underPath);
@@ -311,9 +320,6 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
         LOG.error(e.getMessage());
       }
       PathInfo pathInfo = (PathInfo) SerializationUtils.deserialize(output);
-        LOG.error("断点2");
-        LOG.error(pathInfo.toString());
-
       return !pathInfo.isDirectory;
     }else {
       return false;

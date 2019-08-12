@@ -32,41 +32,43 @@ public class NeuFileOutputStream extends OutputStream {
     Producer<String, byte[]> producer;
 
 
-    public NeuFileOutputStream(CuratorFramework zkclient,String path) {
-        this.client = zkclient;
-        pathInfo = new PathInfo();
-        pathInfo.name = renameFile(path);
-        pathInfo.isDirectory = false;
+    public NeuFileOutputStream(CuratorFramework zkclient,String path,Producer<String, byte[]> produc) {
+        NeuUnderFileSystem.LOG.error("NeuFileOutputStream构造方法调用");
+        try{
+            this.client = zkclient;
+            pathInfo = new PathInfo();
+            pathInfo.name = renameFile(path);
+            pathInfo.isDirectory = false;
 
-        Properties properties = new Properties();
 
-        try {
-            properties.load(new FileReader
-                    (new File("src/main/resources/kafka.properties")));
-        } catch (IOException e) {
-            e.printStackTrace();
+
+            if(client == null){
+
+                String zkServers = "192.168.225.6:2181";
+
+                RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000,3);
+                this.client = CuratorFrameworkFactory.builder()
+                        .connectString(zkServers)
+                        .retryPolicy(retryPolicy)
+                        .sessionTimeoutMs(6000)
+                        .connectionTimeoutMs(3000)
+                        .namespace("fileSize1")
+                        .build();
+                this.client.start();
+            }
+
+            this.producer = produc;
+
+        }catch (Exception e){
+            NeuUnderFileSystem.LOG.error(e.toString());
         }
 
-        if(client == null){
-
-            String zkServers = properties.getProperty("bootstrap.servers").split(":")[0] + ":2181";
-
-            RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000,3);
-            this.client = CuratorFrameworkFactory.builder()
-                    .connectString(zkServers)
-                    .retryPolicy(retryPolicy)
-                    .sessionTimeoutMs(6000)
-                    .connectionTimeoutMs(3000)
-                    .namespace("fileSize1")
-                    .build();
-            this.client.start();
-        }
-
-        producer = new KafkaProducer<String, byte[]>(properties);
+        NeuUnderFileSystem.LOG.error("NeuFileOutputStream构造方法调用结束");
     }
 
     @Override
     public void write(int b) throws IOException {
+//        NeuUnderFileSystem.LOG.error("NeuFileOutputStream.write()调用");
         byteBuffer[pointer] = (byte) b;
         pointer++;
     }
@@ -74,6 +76,7 @@ public class NeuFileOutputStream extends OutputStream {
 
     @Override
     public void close() throws IOException {
+        NeuUnderFileSystem.LOG.error("NeuFileOutputStream.close()调用");
         // 写入kafka
         String[] topicPartition = getTopicPatition(pathInfo.name);
 
@@ -91,6 +94,7 @@ public class NeuFileOutputStream extends OutputStream {
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
+        producer.close();
 
 
         // 写元信息
@@ -106,6 +110,7 @@ public class NeuFileOutputStream extends OutputStream {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        NeuUnderFileSystem.LOG.error("NeuFileOutputStream.close()调用完毕");
 
     }
 

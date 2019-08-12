@@ -146,9 +146,9 @@ public class CuratorTest {
 
     @Test
     public void isFileTest(){
-        String path = "neu:///Users/hcb/Documents/testFile/dummy3/checkpoint_streaming1/state/0/0/16.snapshot";
+        String path = "neu:///china/checkpoint_streaming1/metadata";
         NeuUnderFileSystem neuUnderFileSystem =
-                new NeuUnderFileSystem(new AlluxioURI("/Users/hcb/Documents/testFile/dummy3"),UnderFileSystemConfiguration.defaults(new InstancedConfiguration(new AlluxioProperties())));
+                new NeuUnderFileSystem(new AlluxioURI("/china"),UnderFileSystemConfiguration.defaults(new InstancedConfiguration(new AlluxioProperties())));
         try {
             boolean flag = neuUnderFileSystem.isFile(path);
             System.out.println(flag);

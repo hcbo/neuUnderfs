@@ -30,7 +30,7 @@ public class NormalKafka {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        KafkaProducer<FileInfo, byte[]> producer = new KafkaProducer<FileInfo, byte[]>(properties);
+        KafkaProducer<String, byte[]> producer = new KafkaProducer<String, byte[]>(properties);
 
 
         ProducerRecord record =
