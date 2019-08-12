@@ -137,7 +137,7 @@ public class NormalKafka {
 
     @Test
     public void consumerTest1() {
-        String topic_name = "Users_hcb_Documents_testFile_dummy3_checkpoint_streaming1";
+        String topic_name = "china_checkpoint_streaming1_offsets";
         Properties properties = new Properties();
 
         try {
@@ -153,7 +153,7 @@ public class NormalKafka {
         topicPartitionList.add(topicPartition);
         consumer.assign(topicPartitionList);
 
-        consumer.seek(topicPartition,5);
+        consumer.seek(topicPartition,2);
 
 
         ConsumerRecords<String, byte[]> records;
@@ -167,8 +167,5 @@ public class NormalKafka {
 
     }
 
-    @Test
-    public void test1999(){
-        System.out.println(System.currentTimeMillis()-864000000);
-    }
+
 }

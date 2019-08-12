@@ -39,9 +39,6 @@ public class NeuFileOutputStream extends OutputStream {
             pathInfo = new PathInfo();
             pathInfo.name = renameFile(path);
             pathInfo.isDirectory = false;
-
-
-
             if(client == null){
 
                 String zkServers = "192.168.225.6:2181";

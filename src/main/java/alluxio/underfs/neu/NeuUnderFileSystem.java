@@ -21,6 +21,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.kafka.clients.admin.*;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.common.KafkaFuture;
 import org.apache.log4j.PropertyConfigurator;
@@ -65,7 +66,8 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
       super(uri, conf);
       PropertyConfigurator.configure(getLog4jProps());
       LOG.error("NeuUnderFileSystem 构造方法开始");
-    // 本地mount的路径,例如/Users/hcb/Documents/testFile/String3
+    // 本地mount的路径,例如/Users/hcb/Documents/testFile/dummy3
+      // 这里的mount的路径只支持 单层的路径 ,比如/china
       this.rootPath = uri.getPath();
 
       RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000,3);
@@ -79,7 +81,6 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
       client.start();
 
       //写入rootPath 元信息到zookeeper
-      FileInfo fileInfo = new FileInfo();
       PathInfo pathInfo = new PathInfo(true,rootPath,System.currentTimeMillis());
 
       byte[] input = SerializationUtils.serialize(pathInfo);
@@ -90,8 +91,8 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
       } catch (Exception e) {
           e.printStackTrace();
       }
-      //kafka的property
 
+      //kafka的property
       properties.put("bootstrap.servers",mUfsConf.get(NeuUnderFileSystemPropertyKey.KAFKA_SERVERS));
       properties.put("key.serializer","org.apache.kafka.common.serialization.StringSerializer");
       properties.put("value.serializer","org.apache.kafka.common.serialization.ByteArraySerializer");
@@ -488,7 +489,15 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
       LOG.error("open()方法执行 path="+path);
-    return new NeuFileInputStream(client,stripPath(path));
+      KafkaConsumer<String, byte[]> consum = null;
+      try{
+          Thread.currentThread().setContextClassLoader(null);
+          consum = new KafkaConsumer<String, byte[]>(properties);
+      }catch (Exception e){
+          LOG.error("异常"+e.toString());
+      }
+
+      return new NeuFileInputStream(client,stripPath(path),consum);
   }
 
   @Override

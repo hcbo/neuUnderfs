@@ -5,14 +5,10 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
-
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
@@ -20,7 +16,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
+
 
 public class NeuFileInputStream extends InputStream {
     byte[] byteBuffer ;
@@ -29,22 +25,15 @@ public class NeuFileInputStream extends InputStream {
 
     CuratorFramework client;
 
-    Consumer<String,byte[]> consumer;
+    KafkaConsumer<String,byte[]> consumer;
 
-    public NeuFileInputStream(CuratorFramework zkclient, String path) {
+    public NeuFileInputStream(CuratorFramework zkclient, String path,KafkaConsumer<String,byte[]> consum) {
+        NeuUnderFileSystem.LOG.error("NeuFileInputStream.构造函数调用");
         this.client = zkclient;
-
-        Properties properties = new Properties();
-
-        try {
-            properties.load(new FileReader
-                    (new File("src/main/resources/kafka.properties")));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        this.consumer = consum;
 
         if(client == null){
-            String zkServers = properties.getProperty("bootstrap.servers").split(":")[0] + ":2181";
+            String zkServers = "192.168.225.6:2181";
             RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000,3);
             this.client = CuratorFrameworkFactory.builder()
                     .connectString(zkServers)
@@ -56,7 +45,7 @@ public class NeuFileInputStream extends InputStream {
             this.client.start();
         }
 
-        consumer = new KafkaConsumer<String, byte[]>(properties);
+
 
         // get offset from zookeeper
         byte[] output = new byte[0];
@@ -85,6 +74,8 @@ public class NeuFileInputStream extends InputStream {
         Iterator<ConsumerRecord<String, byte[]>> iterator =records.iterator();
         ConsumerRecord<String, byte[]> record = iterator.next();
         byteBuffer = record.value();
+
+        NeuUnderFileSystem.LOG.error("NeuFileInputStream.构造函数调用结束");
     }
 
     @Override
