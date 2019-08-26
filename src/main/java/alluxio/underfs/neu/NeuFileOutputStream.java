@@ -34,31 +34,26 @@ public class NeuFileOutputStream extends OutputStream {
 
     public NeuFileOutputStream(CuratorFramework zkclient,String path,Producer<String, byte[]> produc) {
         NeuUnderFileSystem.LOG.error("NeuFileOutputStream构造方法调用");
-        try{
-            this.client = zkclient;
-            pathInfo = new PathInfo();
-            pathInfo.name = renameFile(path);
-            pathInfo.isDirectory = false;
-            if(client == null){
+        this.client = zkclient;
+        pathInfo = new PathInfo();
+        pathInfo.name = renameFile(path);
+        pathInfo.isDirectory = false;
+        if(client == null){
 
-                String zkServers = "192.168.225.6:2181";
+            String zkServers = "192.168.225.6:2181";
 
-                RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000,3);
-                this.client = CuratorFrameworkFactory.builder()
-                        .connectString(zkServers)
-                        .retryPolicy(retryPolicy)
-                        .sessionTimeoutMs(6000)
-                        .connectionTimeoutMs(3000)
-                        .namespace("fileSize1")
-                        .build();
-                this.client.start();
-            }
-
-            this.producer = produc;
-
-        }catch (Exception e){
-            NeuUnderFileSystem.LOG.error(e.toString());
+            RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000,3);
+            this.client = CuratorFrameworkFactory.builder()
+                    .connectString(zkServers)
+                    .retryPolicy(retryPolicy)
+                    .sessionTimeoutMs(6000)
+                    .connectionTimeoutMs(3000)
+                    .namespace("fileSize1")
+                    .build();
+            this.client.start();
         }
+
+        this.producer = produc;
 
         NeuUnderFileSystem.LOG.error("NeuFileOutputStream构造方法调用结束");
     }

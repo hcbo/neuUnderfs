@@ -171,6 +171,16 @@ public class AppTest
         System.out.println(topicName);
     }
 
+    @Test
+    public void test110(){
+        //定义一个十六进制值
+        String strHex3 = "ff";
+        //将十六进制转化成十进制
+        int valueTen2 = Integer.parseInt(strHex3,16);
+        System.out.println(strHex3 + " [十六进制]---->[十进制] " + valueTen2);
+
+    }
+
 
 
 }

@@ -80,17 +80,24 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
             .build();
       client.start();
 
-      //写入rootPath 元信息到zookeeper
-      PathInfo pathInfo = new PathInfo(true,rootPath,System.currentTimeMillis());
-
-      byte[] input = SerializationUtils.serialize(pathInfo);
       try {
-          client.create()
-                  .creatingParentContainersIfNeeded()
-                  .forPath(rootPath, input);
+          if(null == client.checkExists().forPath(rootPath)){
+              //写入rootPath 元信息到zookeeper
+              PathInfo pathInfo = new PathInfo(true,rootPath,System.currentTimeMillis());
+
+              byte[] input = SerializationUtils.serialize(pathInfo);
+              try {
+                  client.create()
+                          .creatingParentContainersIfNeeded()
+                          .forPath(rootPath, input);
+              } catch (Exception e) {
+                  e.printStackTrace();
+              }
+          }
       } catch (Exception e) {
           e.printStackTrace();
       }
+
 
       //kafka的property
       properties.put("bootstrap.servers",mUfsConf.get(NeuUnderFileSystemPropertyKey.KAFKA_SERVERS));
@@ -100,7 +107,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
       properties.put("value.deserializer","org.apache.kafka.common.serialization.ByteArrayDeserializer");
       properties.put("enable.auto.commit",true);
       // todo group id 变化起来?
-      properties.put("group.id","test9");
+      properties.put("group.id","test10");
       properties.put("auto.offset.reset","earliest");
       properties.put("acks", "-1");
       properties.put("retries", 3);
@@ -436,6 +443,14 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
             // 创建topic
             String topicName = underPath.replace("/","_").substring(1,underPath.length());
             NewTopic newTopic = new NewTopic(topicName, 1, (short)1);
+
+            //将包含metadata的topic消息设置为70days
+            if(!realPath.contains("/")){
+                Map<String, String> configs = new HashMap<>();
+                configs.put("retention.ms","6048000000");
+                newTopic = newTopic.configs(configs);
+            }
+
             List<NewTopic> newTopics = new ArrayList<NewTopic>();
             newTopics.add(newTopic);
             CreateTopicsResult createTopicsResult = adminClient.createTopics(newTopics);

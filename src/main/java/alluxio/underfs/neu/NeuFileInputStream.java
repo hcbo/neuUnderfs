@@ -66,7 +66,7 @@ public class NeuFileInputStream extends InputStream {
         consumer.seek(topicPartition,offset);
         ConsumerRecords<String, byte[]> records;
         while (true) {
-            records = consumer.poll(Duration.of(100, ChronoUnit.MILLIS));
+            records = consumer.poll(Duration.of(1000, ChronoUnit.MILLIS));
             if(!records.isEmpty()){
                 break;
             }
@@ -75,14 +75,15 @@ public class NeuFileInputStream extends InputStream {
         ConsumerRecord<String, byte[]> record = iterator.next();
         byteBuffer = record.value();
 
-        NeuUnderFileSystem.LOG.error("NeuFileInputStream.构造函数调用结束");
+        NeuUnderFileSystem.LOG.error("NeuFileInputStream.构造函数调用结束"+ " "+byteBuffer.length);
     }
 
     @Override
     public int read() throws IOException {
         if(pointer < byteBuffer.length){
-            return byteBuffer[pointer++];
-
+            int res = (int)byteBuffer[pointer];
+            pointer++;
+            return res&(0xff);
         }
         return -1;
     }

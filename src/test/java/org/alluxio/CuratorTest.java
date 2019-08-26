@@ -118,12 +118,14 @@ public class CuratorTest {
 
     @Test
     public void openTest(){
-        String path = "neu:///Users/hcb/Documents/testFile/dummy3/checkpoint_streaming1/state/0/0/16.snapshot";
+        String path = "neu:///china/checkpoint_streaming1/metadata";
         NeuUnderFileSystem neuUnderFileSystem =
-                new NeuUnderFileSystem(new AlluxioURI("/Users/hcb/Documents/testFile/dummy3"),UnderFileSystemConfiguration.defaults(new InstancedConfiguration(new AlluxioProperties())));
+                new NeuUnderFileSystem(new AlluxioURI("/china"),
+                        UnderFileSystemConfiguration.defaults(new InstancedConfiguration(new AlluxioProperties())));
         try {
             NeuFileInputStream neuFileInputStream = (NeuFileInputStream)neuUnderFileSystem.open(path,null);
             byte[] buffer = new byte[1024];
+
             neuFileInputStream.read(buffer);
             System.out.println(new String(buffer));
         } catch (IOException e) {
@@ -136,7 +138,7 @@ public class CuratorTest {
         client.start();
         byte[] output = new byte[0];
         try {
-            output = client.getData().forPath("/china");
+            output = client.getData().forPath("/china/checkpoint_streaming2/state/0/0/1.delta");
         } catch (Exception e) {
             e.printStackTrace();
         }
