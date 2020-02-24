@@ -572,7 +572,7 @@ public class NeuUnderFileSystem extends ConsistentUnderFileSystem {
   private Properties getLog4jProps(){
       Properties props = new Properties();
       props.put("log4j.appender.FileAppender","org.apache.log4j.RollingFileAppender");
-      props.put("log4j.appender.FileAppender.File","/Users/hcb/Documents/logs2/log4j/neu.log");
+      props.put("log4j.appender.FileAppender.File","/root/myAlluxio/neu.log");
       props.put("log4j.appender.FileAppender.layout","org.apache.log4j.PatternLayout");
       props.put("log4j.appender.FileAppender.layout.ConversionPattern","%-4r [%t] %-5p %c %x - %m%n");
       props.put("log4j.rootLogger","ERROR, FileAppender");
